@@ -1,7 +1,7 @@
 import imp
 from base import Report
 
-
+__version__ = "0.0.1"
 
 _registry = {}
 
