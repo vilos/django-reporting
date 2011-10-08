@@ -3,9 +3,11 @@ from django.template.context import RequestContext
 import reporting
 
 def report_list(request):
-    reports = reporting.all_reports()
-    return render_to_response('reporting/list.html', {'reports': reports}, 
-                              context_instance=RequestContext(request))
+    all_reports = reporting.all_reports()
+    reports = []
+    for slug, report in all_reports:
+        reports.append((slug, report(request),))
+    return render_to_response('reporting/list.html', {'reports': reports})
 
 def view_report(request, slug):
     report = reporting.get_report(slug)(request)
