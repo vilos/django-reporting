@@ -8,7 +8,7 @@ reporting.autodiscover()
 
 
 def index(request):
-    return HttpResponseRedirect('/reporting/')
+    return HttpResponseRedirect('/admin/')
 
 urlpatterns = patterns('',
     (r'^$', index),
