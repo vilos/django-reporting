@@ -7,8 +7,8 @@ setup(
     long_description=open('README.rst').read(),
     #author='Rob Hudson',
     #author_email='rob@cogit8.org',
-    url='git://github.com/jbruce12000/django-reporting.git',
-    download_url='git://github.com/jbruce12000/django-reporting.git',
+    url='git://github.com/Helljawz/django-reporting.git',
+    download_url='git://github.com/Helljawz/django-reporting.git',
     license='BSD',
     packages=find_packages(exclude=['ez_setup']),
     tests_require=[
