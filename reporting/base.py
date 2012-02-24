@@ -61,6 +61,7 @@ class Report(object):
     detail_list_display = None
     date_hierarchy = None
     aggregate = None
+    template_name = 'reporting/view.html'
 
     def __init__(self, request):
         self.request = request
