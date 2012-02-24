@@ -6,7 +6,7 @@ class PersonReport(reporting.Report):
     model = Person
     verbose_name = 'Person Report'
     annotate = (                    # Annotation fields (tupples of field, func, title)
-        ('id', Count, 'Total'),     # example of custom title for column 
+        ('id', Count, 'Total'),     # example of custom title for column
         ('salary', Sum),            # no title - column will be "Salary Sum"
         ('expenses', Sum),
     )
@@ -16,19 +16,20 @@ class PersonReport(reporting.Report):
         ('expenses', Sum, 'Expenses'),
     )
     group_by = [                   # list of fields and lookups for group-by options
-        'department',
-        'department__leader', 
-        'occupation', 
+        ('department', ('department',)),
+        ('leader', ('department__leader',), 'Department leader'),
+        ('occupation', ('occupation',)),
+        ('dep_occup', ('department', 'occupation',), 'Department and occupation'),
     ]
     list_filter = [                # This are report filter options (similar to django-admin)
        'occupation',
        'country',
     ]
-    
-    detail_list_display = [        # if detail_list_display is defined user will be able to see how rows was grouped  
-        'name', 
+
+    detail_list_display = [        # if detail_list_display is defined user will be able to see how rows was grouped
+        'name',
         'salary',
-        'expenses', 
+        'expenses',
     ]
 
     date_hierarchy = 'birth_date' # the same as django-admin
