@@ -9,16 +9,16 @@
 <div class="breadcrumbs">
 	<a href="/admin/">{% trans "Home" %}</a> &rsaquo;
 	<a href="{% url reporting-list %}">Reports</a> &rsaquo;
-	{{report.verbose_name}} 
+	{{report.verbose_name}}
 </div>
 {% endblock %}
 
 {% block content %}
 <div id="content-main">
 	{% block object-tools %}{% endblock %}
-    
+
 	{% block date_hierarchy %}{% report_date_hierarchy report %}{% endblock %}
-    
+
 	<div class="module{% if cl.has_filters %} filtered{% endif %}" id="changelist">
 
 	{% block filters %}
@@ -44,65 +44,67 @@
 
 	{% block result_list %}
 		<div id="changelist" class="filtered">
-			<table>
-				{% if not report.show_details %}
-					<thead>
-						<tr>
-							{% for head in report.get_headers %}
-								<th class="{{head.css_class}}"><a href="{{head.url}}">{{head.text}}</a></th>
-							{% endfor %}
-						</tr>
-					</thead>
-				{% endif %}
-				{% for row in report.results %}
+			<div class="results">
+				<table id="result_list">
 					{% if not report.show_details %}
-						<tr class="row{% if forloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
-							{% for value in row.values %}<td>{{value}}</td>{% endfor %}
-						</tr>
-					{% else %}
-						<tr class="row{% if forloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
-							<td colspan="{{report.header_count}}" style="text-align: left;"><strong>{{row.values.0}}</strong></td>
-						</tr>
-					{% endif %}
-					{% if row.details %}
 						<thead>
-							<tr class="row{% if forloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
-								<td style="border-bottom: 0px;"></td>
-								{% for col in report.get_details_headers %}
-									<th>{{col}}</th>
+							<tr>
+								{% for head in report.get_headers %}
+									<th class="{{head.css_class}}"><a href="{{head.url}}">{{head.text}}</a></th>
 								{% endfor %}
 							</tr>
 						</thead>
-						{% for details_row in row.details %}
-							<tr class="row{% if forloop.parentloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
-								<td style="border-bottom: 0px;"></td>
-								{% for value in details_row %}
-									<td>{{value}}</td>
-								{% endfor %}
-							</tr>
-						{% endfor %}
-						{% if report.show_details %}
+					{% endif %}
+					{% for row in report.results %}
+						{% if not report.show_details %}
 							<tr class="row{% if forloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
-								{% for value in row.values %}
-									{% if not forloop.counter0 %}
-										<td> </td>
-									{% else %}
-										<td><strong>{{value}}</strong></td>
-									{% endif %}
-								{% endfor %}
+								{% for value in row.values %}<td>{{value}}</td>{% endfor %}
+							</tr>
+						{% else %}
+							<tr class="row{% if forloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
+								<td colspan="{{report.header_count}}" style="text-align: left;"><strong>{{row.values.0}}</strong></td>
 							</tr>
 						{% endif %}
+						{% if row.details %}
+							<thead>
+								<tr class="row{% if forloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
+									<td style="border-bottom: 0px;"></td>
+									{% for col in report.get_details_headers %}
+										<th>{{col}}</th>
+									{% endfor %}
+								</tr>
+							</thead>
+							{% for details_row in row.details %}
+								<tr class="row{% if forloop.parentloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
+									<td style="border-bottom: 0px;"></td>
+									{% for value in details_row %}
+										<td>{{value}}</td>
+									{% endfor %}
+								</tr>
+							{% endfor %}
+							{% if report.show_details %}
+								<tr class="row{% if forloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
+									{% for value in row.values %}
+										{% if not forloop.counter0 %}
+											<td> </td>
+										{% else %}
+											<td><strong>{{value}}</strong></td>
+										{% endif %}
+									{% endfor %}
+								</tr>
+							{% endif %}
+						{% endif %}
+					{% endfor %}
+					{% if report.aggregate %}
+						<tr>
+							<td> </td>
+							{% for title, value in report.get_aggregation %}
+								<td><strong>{{title}}: {{value}}</strong></td>
+							{% endfor %}
+						</tr>
 					{% endif %}
-				{% endfor %}
-				{% if report.aggregate %}
-					<tr>
-						<td> </td>
-						{% for title, value in report.get_aggregation %}
-							<td><strong>{{title}}: {{value}}</strong></td>
-						{% endfor %}
-					</tr>
-				{% endif %}
-			</table>
+				</table>
+			</div>
 		</div>
 	{% endblock %}
 	</div>
