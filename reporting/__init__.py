@@ -1,5 +1,8 @@
 import imp
-from base import Report
+import os
+if 'DJANGO_SETTINGS_MODULE' in os.environ:
+    from base import Report
+
 
 VERSION = (0, 0, 1)
 __version__ = '.'.join(map(str, VERSION))
@@ -21,7 +24,7 @@ def all_reports():
 
 def autodiscover():
     from django.conf import settings
-    REPORTING_SOURCE_FILE =  getattr(settings, 'REPORTING_SOURCE_FILE', 'reports') 
+    REPORTING_SOURCE_FILE =  getattr(settings, 'REPORTING_SOURCE_FILE', 'reports')
     for app in settings.INSTALLED_APPS:
         try:
             app_path = __import__(app, {}, {}, [app.split('.')[-1]]).__path__
