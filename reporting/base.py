@@ -157,8 +157,9 @@ class Report(object):
         return value
 
     def get_headers(self):
-        output = [Header(self, 0, self.get_lookup_title(field))
-                  for field in self.selected_group_by]
+        output = [Header(self, 0, capfirst(
+            get_fields_from_path(self.model, field)[-1].verbose_name))
+            for field in self.selected_group_by]
         ind = len(output)
         for title in self.annotate_titles:
             output.append(Header(self, ind, title))
