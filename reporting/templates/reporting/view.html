@@ -28,7 +28,7 @@
 					<h2>Details</h2>
 					<ul><li>{{report.details_switch|safe}}</li></ul>
 				{% endif %}
-				<h2>Group by</h2>
+				<h2>{% trans 'Group by' %}</h2>
 				<ul>
 					{% for url, name, selected in report.group_by_links %}
 						<li{% if selected %} class="selected"{% endif %}><a href="{{url}}">{{name}}</a></li>
