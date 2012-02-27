@@ -1,4 +1,5 @@
 from django.contrib.admin.options import IncorrectLookupParameters
+from django.contrib.admin.util import get_fields_from_path
 from django.utils.http import urlencode
 from django.utils.encoding import smart_str
 from django.db import models
@@ -200,18 +201,14 @@ class Report(object):
             raise IncorrectLookupParameters
         return qs
 
-
     def get_filters(self, model_admin):
         filter_specs = []
         if self.list_filter:
-            #fields = []
-            for field_name in self.list_filter:
-                try:
-                    field = self.get_field(field_name)
-                except:
-                    filter_specs.append(LookupFilterSpec(field_name, self.request, self.params, self.model, model_admin))
-                    continue
-                spec = FilterSpec.create(field, self.request, self.params, self.model, model_admin)
+            for filter_name in self.list_filter:
+                field = get_fields_from_path(self.model, filter_name)[-1]
+                spec = FilterSpec.create(field, self.request, self.params,
+                                         self.model, model_admin,
+                                         field_path=filter_name)
                 if spec and spec.has_output():
                     filter_specs.append(spec)
         return filter_specs, bool(filter_specs)
