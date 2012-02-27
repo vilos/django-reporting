@@ -1,6 +1,7 @@
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns, url
+from .views import ReportListView, ReportView
 
-urlpatterns = patterns('reporting.views',
-    url('^$', 'report_list', name='reporting-list'),
-    url('^(?P<slug>.*)/$', 'view_report', name='reporting-view'),
+urlpatterns = patterns('',
+    url('^$', ReportListView.as_view(), name='reporting-list'),
+    url('^(?P<slug>.*)/$', ReportView.as_view(), name='reporting-view'),
 )
