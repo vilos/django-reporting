@@ -179,9 +179,12 @@ class Report(object):
 
         return self.group_by[0][1]
 
+    def get_root_queryset(self):
+        return self.model.objects.all()
+
     def get_queryset(self):
         lookup_params = self.params.copy()
-        qs = self.model.objects.all()
+        qs = self.get_root_queryset()
         for field in [GROUP_BY_VAR, SORT_VAR, SORTTYPE_VAR, DETAILS_SWITCH_VAR]:
             if field in lookup_params:
                 del lookup_params[field]
