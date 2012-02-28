@@ -1,5 +1,6 @@
 import reporting
 from django.contrib.auth.decorators import permission_required
+from django.http import Http404
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
@@ -32,9 +33,15 @@ class ReportView(TemplateView):
     def dispatch(self, *args, **kwargs):
         return super(ReportView, self).dispatch(*args, **kwargs)
 
+    def get_report(self, slug):
+        try:
+            return reporting.get_report(slug)(self.request)
+        except reporting.ReportNotFound:
+            raise Http404
+
     def get_context_data(self, slug, **kwargs):
         context = super(ReportView, self).get_context_data(slug=slug, **kwargs)
-        report = reporting.get_report(slug)(self.request)
+        report = self.get_report(slug)
         data = {'report': report, 'title': report.verbose_name}
         context.update(data)
         return context

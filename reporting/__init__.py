@@ -9,14 +9,21 @@ __version__ = '.'.join(map(str, VERSION))
 
 _registry = {}
 
+
+class ReportNotFound(Exception):
+    pass
+
+
 def register(slug, klass):
     _registry[slug] = klass
+
 
 def get_report(slug):
     try:
         return _registry[slug]
     except KeyError:
-        raise Exception("No such report '%s'" % slug)
+        raise ReportNotFound("No such report '%s'" % slug)
+
 
 def all_reports():
     return _registry.items()
