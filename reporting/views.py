@@ -1,15 +1,13 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render_to_response
-from django.template.context import RequestContext
+import reporting
+from django.contrib.auth.decorators import permission_required
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
-import reporting
 
 
 class ReportListView(TemplateView):
     template_name = 'reporting/list.html'
 
-    @method_decorator(login_required)
+    @method_decorator(permission_required("auth.can_view_reports"))
     def dispatch(self, *args, **kwargs):
         return super(ReportListView, self).dispatch(*args, **kwargs)
 
@@ -30,7 +28,7 @@ class ReportListView(TemplateView):
 class ReportView(TemplateView):
     template_name = 'reporting/view.html'
 
-    @method_decorator(login_required)
+    @method_decorator(permission_required("auth.can_view_reports"))
     def dispatch(self, *args, **kwargs):
         return super(ReportView, self).dispatch(*args, **kwargs)
 

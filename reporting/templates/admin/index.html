@@ -76,9 +76,11 @@
             </ul>
             {% endif %}
     </div>
-    <div class="module" id="recent-actions-module">
-        <h2>{% trans 'Reports' %}</h2>
-        <ul><li><a href="{% url reporting-list %}">{% trans 'View Reports' %}</a></li></ul>
-    </div>
+    {% if perms.auth.can_view_reports %}
+		<div class="module" id="recent-actions-module">
+			<h2>{% trans 'Reports' %}</h2>
+			<ul><li><a href="{% url reporting-list %}">{% trans 'View Reports' %}</a></li></ul>
+		</div>
+    {% endif %}
 </div>
 {% endblock %}
