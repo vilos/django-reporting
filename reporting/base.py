@@ -5,6 +5,8 @@ from django.utils.encoding import smart_str
 from django.db import models
 from django.db.models.fields.related import RelatedField
 from django.db.models.fields import FieldDoesNotExist
+# we have to check EmptyQuerySet due to https://code.djangoproject.com/ticket/17681
+from django.db.models.query import EmptyQuerySet
 from django.utils.text import capfirst
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
@@ -15,6 +17,7 @@ from filterspecs import *
 
 def get_model_field(model, name):
     return model._meta.get_field(name)
+
 
 def get_lookup_value(model, original, lookup):
     parts = lookup.split('__')
@@ -29,7 +32,6 @@ def get_lookup_value(model, original, lookup):
         return get_lookup_value(rel_model, original, next_lookup)
     except:
         return original
-
 
 
 class ModelAdminMock(object):
@@ -79,13 +81,12 @@ class Report(object):
         self.show_details = self.params.get(DETAILS_SWITCH_VAR) is not None
         self.sort_type = self.params.get(SORTTYPE_VAR, 'asc')
         self.filter_specs, self.has_filters = self.get_filters(admin_mock)
-        self.get_results()
         self.query_set = self.get_queryset()
+        self.get_results()
         self.get_aggregation()
 
-
     def get_results(self):
-        qs = self.get_queryset()
+        qs = self.query_set
 
         annotate_args = {}
         for field, func in self.annotate:
@@ -93,11 +94,16 @@ class Report(object):
 
         values = self.selected_group_by
 
-        rows = qs.values(*values).annotate(**annotate_args).order_by(*values)
+        if not isinstance(qs, EmptyQuerySet):
+            rows = qs.values(*values).annotate(**annotate_args)\
+                    .order_by(*values)
+        else:
+            rows = []
 
         self.results = []
         for row in rows:
-            row_vals = [self.get_value(row, field) for field in self.selected_group_by]
+            row_vals = [self.get_value(row, field)
+                        for field in self.selected_group_by]
             for field, func in self.annotate:
                 row_vals.append(row[field])
             details = None
@@ -112,7 +118,7 @@ class Report(object):
         """
         Sorting is performed manually since queries are with annotations
         """
-        def cmp(x,y):
+        def cmp(x, y):
             if self.sort_type == 'asc':
                 val1 = x['values'][self.sort_by]
                 val2 = y['values'][self.sort_by]
@@ -133,7 +139,10 @@ class Report(object):
         for field, func in self.aggregate:
             aggregate_args[field] = func(field)
 
-        data = self.get_queryset().aggregate(**aggregate_args)
+        if not isinstance(self.query_set, EmptyQuerySet):
+            data = self.query_set.aggregate(**aggregate_args)
+        else:
+            data = {}
 
         result = []
         ind = 0
@@ -141,10 +150,9 @@ class Report(object):
             title = self.aggregate_titles[ind]
             #field_name = self.get_lookup_title(field)
             #text = '%s %s' % (field_name, func.__name__.replace ('Sum', 'Total'))
-            result.append((title, data[field]))
+            result.append((title, data.get(field, 0)))
             ind += 1
         return result
-
 
     def get_value(self, data, field):
         value = data[field]
@@ -166,7 +174,7 @@ class Report(object):
         return output
 
     def header_count(self):
-        return len(self.annotate) + 1#+1 group by
+        return len(self.annotate) + len(self.selected_group_by)
 
     def get_details_headers(self):
         return [self.get_lookup_title(i) for i in self.detail_list_display]
@@ -247,7 +255,7 @@ class Report(object):
         for field in self.selected_group_by:
             conditions[field] = row[field]
 
-        queryset = self.get_queryset().filter(**conditions)
+        queryset = self.query_set.filter(**conditions)
         output = []
         for obj in queryset:
             item = []
