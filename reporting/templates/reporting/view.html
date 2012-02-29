@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load adminmedia admin_list reporting i18n %}
+{% load adminmedia admin_list i18n %}
 
 {% block extrastyle %}<link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/changelists.css" />{% endblock %}
 
@@ -17,7 +17,7 @@
 <div id="content-main">
 	{% block object-tools %}{% endblock %}
 
-	{% block date_hierarchy %}{% report_date_hierarchy report %}{% endblock %}
+	{% block date_hierarchy %}{% date_hierarchy report %}{% endblock %}
 
 	<div class="module{% if cl.has_filters %} filtered{% endif %}" id="changelist">
 
