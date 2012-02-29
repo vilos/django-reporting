@@ -81,6 +81,7 @@ class Report(object):
         self.show_details = self.params.get(DETAILS_SWITCH_VAR) is not None
         self.sort_type = self.params.get(SORTTYPE_VAR, 'asc')
         self.filter_specs, self.has_filters = self.get_filters(admin_mock)
+        self.root_query_set = self.get_root_queryset()
         self.query_set = self.get_queryset()
         self.get_results()
         self.get_aggregation()
@@ -192,7 +193,7 @@ class Report(object):
 
     def get_queryset(self):
         lookup_params = self.params.copy()
-        qs = self.get_root_queryset()
+        qs = self.root_query_set
         for field in [GROUP_BY_VAR, SORT_VAR, SORTTYPE_VAR, DETAILS_SWITCH_VAR]:
             if field in lookup_params:
                 del lookup_params[field]
