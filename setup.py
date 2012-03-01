@@ -4,7 +4,7 @@ setup(
     name='django-reporting',
     version=__import__('reporting').__version__,
     description='django-reporting',
-    long_description=open('README.rst').read(),
+    long_description=open('README.TXT').read(),
     author='Vitaliy Kucheraviy',
     author_email='ppr.vitaly@gmail.com',
     url='https://github.com/DXist/django-reporting',
