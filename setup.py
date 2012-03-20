@@ -11,6 +11,10 @@ setup(
     download_url='git://github.com/DXist/django-reporting.git',
     license='BSD',
     packages=find_packages(exclude=['ez_setup']),
+    install_requires = [
+        'django<1.3',
+        'django-cbv',
+        ],
     tests_require=[
         'django',
     ],

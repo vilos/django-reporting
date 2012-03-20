@@ -2,7 +2,8 @@ import reporting
 from django.contrib.auth.decorators import permission_required
 from django.http import Http404
 from django.utils.decorators import method_decorator
-from django.views.generic import TemplateView
+
+from cbv import TemplateView
 
 
 class ReportListView(TemplateView):
