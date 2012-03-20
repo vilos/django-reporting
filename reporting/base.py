@@ -1,5 +1,4 @@
 from django.contrib.admin.options import IncorrectLookupParameters
-from django.contrib.admin.util import get_fields_from_path
 from django.utils.http import urlencode
 from django.utils.encoding import smart_str
 from django.db import models
@@ -13,6 +12,8 @@ from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
 
 from filterspecs import *
+
+from reporting.util import get_fields_from_path
 
 
 def get_model_field(model, name):
