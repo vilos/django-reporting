@@ -1,3 +1,5 @@
+from django.db.models.sql.constants import LOOKUP_SEP
+
 def get_model_from_relation(field):
     if isinstance(field, models.related.RelatedObject):
         return field.model
