@@ -1,5 +1,6 @@
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.util import get_fields_from_path
+from django.contrib.admin.views.main import PAGE_VAR, ORDER_VAR, ORDER_TYPE_VAR
 from django.utils.http import urlencode
 from django.utils.encoding import smart_str
 from django.db import models
@@ -43,8 +44,6 @@ class ModelAdminMock(object):
 
 
 GROUP_BY_VAR = 'group_by'
-SORT_VAR = 's'
-SORTTYPE_VAR = 'st'
 DETAILS_SWITCH_VAR = 'ds'
 
 
@@ -54,10 +53,12 @@ class Header(object):
         self.css_class = ''
         order_type = 'asc'
 
-        if ind == report.sort_by:
-            order_type = {'asc':'desc', 'desc': 'asc'}[report.sort_type]
-            self.css_class = 'sorted %sending' % report.sort_type
-        self.url = report.get_query_string({SORT_VAR: ind, SORTTYPE_VAR: order_type})
+        if ind == report.order_by:
+            order_type = {'asc': 'desc', 'desc': 'asc'}[report.order_type]
+            self.css_class = 'ordered %sending' % report.order_type
+        self.url = report.get_query_string({ORDER_VAR: ind, ORDER_TYPE_VAR:
+                                            order_type})
+
 
 class Report(object):
     list_filter = None
@@ -67,71 +68,32 @@ class Report(object):
 
     def __init__(self, request):
         self.request = request
+        self.params = dict(self.request.GET.items())
+        if PAGE_VAR in self.params:
+            del self.params[PAGE_VAR]
         admin_mock = ModelAdminMock(self.model)
 
-        self.annotate, self.annotate_titles = self.split_annotate_titles(self.annotate)
-        self.aggregate, self.aggregate_titles = self.split_annotate_titles(self.aggregate)
+        annotate, self.annotate_titles = self.split_annotate_titles(
+            self.annotate)
+        self.annotate_fields = self.get_annotate_fields(annotate)
+        self.selected_group_by = self.get_group_by_fields()
+        self.fields = self.get_fields()
+        self.order_by, self.order_field, self.order_type = self.get_ordering()
+
+        self.aggregate, self.aggregate_titles = self.split_annotate_titles(
+            self.aggregate)
+
         self.group_by, self.group_by_titles = self.split_titles(self.group_by)
-        if self.detail_list_display and not hasattr(self, 'detail_link_fields'):
+        if (self.detail_list_display and not hasattr(self,
+                                                     'detail_link_fields')):
             self.detail_link_fields = [self.detail_list_display[0]]
 
-        self.params = dict(self.request.GET.items())
-        self.selected_group_by = self.get_group_by_fields()
-        self.sort_by = int(self.params.get(SORT_VAR, '0'))
         self.show_details = self.params.get(DETAILS_SWITCH_VAR) is not None
-        self.sort_type = self.params.get(SORTTYPE_VAR, 'asc')
         self.filter_specs, self.has_filters = self.get_filters(admin_mock)
         self.root_query_set = self.get_root_queryset()
         self.query_set = self.get_queryset()
-        self.get_results()
+        self.annotated_queryset = self.get_annotated_queryset()
         self.get_aggregation()
-
-    def get_results(self):
-        qs = self.query_set
-
-        annotate_args = {}
-        for field, func in self.annotate:
-            annotate_args[field] = func(field)
-
-        values = self.selected_group_by
-
-        if not isinstance(qs, EmptyQuerySet):
-            rows = qs.values(*values).annotate(**annotate_args)\
-                    .order_by(*values)
-        else:
-            rows = []
-
-        self.results = []
-        for row in rows:
-            row_vals = [self.get_value(row, field)
-                        for field in self.selected_group_by]
-            for field, func in self.annotate:
-                row_vals.append(row[field])
-            details = None
-            if self.detail_list_display and self.show_details:
-                details = self.get_details(row)
-            self.results.append({'values': row_vals,
-                                 'details': details})
-
-        self.sort_results()
-
-    def sort_results(self):
-        """
-        Sorting is performed manually since queries are with annotations
-        """
-        def cmp(x, y):
-            if self.sort_type == 'asc':
-                val1 = x['values'][self.sort_by]
-                val2 = y['values'][self.sort_by]
-            else:
-                val1 = y['values'][self.sort_by]
-                val2 = x['values'][self.sort_by]
-            if val2 > val1:
-                return -1
-            elif val2 < val1:
-                return 1
-            return 0
-        self.results.sort(cmp)
 
     def get_aggregation(self):
         if self.aggregate is None:
@@ -155,6 +117,26 @@ class Report(object):
             ind += 1
         return result
 
+    def get_fields(self):
+        fields = []
+        fields += self.selected_group_by
+
+        for field, annotator in self.annotate_fields:
+            fields.append(field)
+
+        return fields
+
+    def get_ordering(self):
+        order_by = int(self.params.get(ORDER_VAR, '0'))
+        order_type = self.params.get(ORDER_TYPE_VAR, 'asc')
+
+        try:
+            order_field = self.fields[order_by]
+        except IndexError:
+            order_field = self.fields[0]
+
+        return order_by, order_field, order_type
+
     def get_value(self, data, field):
         value = data[field]
         if '__' in field:
@@ -165,20 +147,28 @@ class Report(object):
         return value
 
     def get_headers(self):
-        output = [Header(self, 0, capfirst(
-            get_fields_from_path(self.model, field)[-1].verbose_name))
-            for field in self.selected_group_by]
-        ind = len(output)
+        output = []
+        ind = 0
+        for field in self.selected_group_by:
+            output.append(Header(self, ind, capfirst(
+                get_fields_from_path(self.model, field)[-1].verbose_name)))
+            ind += 1
+
         for title in self.annotate_titles:
             output.append(Header(self, ind, title))
             ind += 1
         return output
 
-    def header_count(self):
-        return len(self.annotate) + len(self.selected_group_by)
-
     def get_details_headers(self):
         return [self.get_lookup_title(i) for i in self.detail_list_display]
+
+    def get_annotate_fields(self, annotate):
+        annotate_fields = []
+        for field, func in annotate:
+            key = field + "_" + func.__name__.lower()
+            annotate_fields.append((key, func(field)))
+
+        return annotate_fields
 
     def get_group_by_fields(self):
         grouper = self.params.get(GROUP_BY_VAR, self.group_by[0][0])
@@ -194,7 +184,8 @@ class Report(object):
     def get_queryset(self):
         lookup_params = self.params.copy()
         qs = self.root_query_set
-        for field in [GROUP_BY_VAR, SORT_VAR, SORTTYPE_VAR, DETAILS_SWITCH_VAR]:
+        for field in [GROUP_BY_VAR, ORDER_VAR, ORDER_TYPE_VAR, DETAILS_SWITCH_VAR,
+                     PAGE_VAR]:
             if field in lookup_params:
                 del lookup_params[field]
         for key, value in lookup_params.items():
@@ -213,6 +204,17 @@ class Report(object):
             raise IncorrectLookupParameters
         return qs
 
+    def get_annotated_queryset(self):
+        qs = self.query_set
+        values = self.selected_group_by
+        if not isinstance(qs, EmptyQuerySet):
+            return qs.values(*values).annotate(
+                **dict(self.annotate_fields)).order_by(
+                    '%s%s' % ((self.order_type == 'desc' and '-' or ''),
+                                self.order_field))
+        else:
+            return qs
+
     def get_filters(self, model_admin):
         filter_specs = []
         if self.list_filter:
@@ -226,8 +228,10 @@ class Report(object):
         return filter_specs, bool(filter_specs)
 
     def get_query_string(self, new_params=None, remove=None):
-        if new_params is None: new_params = {}
-        if remove is None: remove = []
+        if new_params is None:
+            new_params = {}
+        if remove is None:
+            remove = []
         p = self.params.copy()
         for r in remove:
             for k in p.keys():
@@ -244,7 +248,7 @@ class Report(object):
     def group_by_links(self):
         result = []
         for f in self.group_by:
-            url = './' + self.get_query_string({GROUP_BY_VAR:f[0]})
+            url = './' + self.get_query_string({GROUP_BY_VAR: f[0]})
             name = self.group_by_titles[f[0]]
             selected = self.selected_group_by == f[1]
             result.append((url, name, selected))
@@ -277,7 +281,8 @@ class Report(object):
         return output
 
     def details_url(self, obj):
-        view_name = 'admin:%s_%s_change' % (obj._meta.app_label, obj._meta.module_name)
+        view_name = 'admin:%s_%s_change' % (obj._meta.app_label,
+                                            obj._meta.module_name)
         return reverse(view_name, args=[obj.pk])
 
     def get_details_summary(self, row):
@@ -290,9 +295,8 @@ class Report(object):
             url = self.get_query_string({}, DETAILS_SWITCH_VAR)
         else:
             title = 'Show'
-            url = self.get_query_string({DETAILS_SWITCH_VAR:'y'})
+            url = self.get_query_string({DETAILS_SWITCH_VAR: 'y'})
         return '<a href="%s">%s</a>' % (url, title)
-
 
     def get_field(self, name):
         return get_model_field(self.model, name)
@@ -329,5 +333,3 @@ class Report(object):
             else:
                 titles[item[0]] = item[2]
         return items, titles
-
-

@@ -16,10 +16,10 @@ class PersonReport(reporting.Report):
         ('expenses', Sum, 'Expenses'),
     )
     group_by = [                   # list of fields and lookups for group-by options
-        ('department', ('department',)),
+        ('department', ('department__title',)),
         ('leader', ('department__leader',), 'Department leader'),
-        ('occupation', ('occupation',)),
-        ('dep_occup', ('department', 'occupation',), 'Department and occupation'),
+        ('occupation', ('occupation__title',)),
+        ('dep_occup', ('department__title', 'occupation__title',), 'Department and occupation'),
     ]
     list_filter = [                # This are report filter options (similar to django-admin)
        'occupation',

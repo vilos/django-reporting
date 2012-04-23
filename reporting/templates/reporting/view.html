@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load adminmedia admin_list i18n %}
+{% load adminmedia admin_list i18n reporting_tags %}
 
 {% block extrastyle %}<link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/changelists.css" />{% endblock %}
 
@@ -57,14 +57,14 @@
 									</tr>
 								</thead>
 							{% endif %}
-							{% for row in report.results %}
+							{% for row in object_list|annotate_details:report %}
 								{% if not report.show_details %}
 									<tr class="row{% if forloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
-										{% for value in row.values %}<td>{{value}}</td>{% endfor %}
+										{% for item in row.items %}<td>{{item.1}}</td>{% endfor %}
 									</tr>
 								{% else %}
 									<tr class="row{% if forloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
-										<td colspan="{{report.header_count}}" style="text-align: left;">
+										<td colspan="{{report.fields.length}}" style="text-align: left;">
 											<strong>{{row.values|slice:group_slice|join:", "}} </strong>
 										</td>
 									</tr>
@@ -112,6 +112,7 @@
 							{% endif %}
 						</table>
 					</div>
+					{% block pagination %}{% pagination report %}{% endblock %}
 				</div>
 			{% endwith %}
 		{% endwith %}
