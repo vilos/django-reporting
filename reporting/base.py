@@ -12,6 +12,7 @@ from django.utils.text import capfirst
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
+from django.contrib.admin import FieldListFilter
 
 from filterspecs import *
 
@@ -220,7 +221,7 @@ class Report(object):
         if self.list_filter:
             for filter_name in self.list_filter:
                 field = get_fields_from_path(self.model, filter_name)[-1]
-                spec = SimpleListFilter.create(field, self.request, self.params,
+                spec = FieldListFilter.create(field, self.request, self.params,
                                          self.model, model_admin,
                                          field_path=filter_name)
                 if spec and spec.has_output():
