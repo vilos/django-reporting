@@ -1,9 +1,12 @@
-from django.contrib.admin.filterspecs import FilterSpec
+try:
+    from django.contrib.admin import SimpleListFilter
+except: # pre-1.3
+    from django.contrib.admin.filterspecs import FilterSpec as SimpleListFilter
 from django.db.models.fields.related import RelatedField
 from django.template.defaultfilters import capfirst
 
 
-class LookupFilterSpec(FilterSpec):
+class LookupFilterSpec(SimpleListFilter):
     def __init__(self, f, request, params, model, model_admin):
         FilterSpec.__init__(self, f, request, params, model, model_admin)
         self.model = model
