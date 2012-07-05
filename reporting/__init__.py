@@ -4,7 +4,7 @@ if 'DJANGO_SETTINGS_MODULE' in os.environ:
     from base import Report
 
 
-VERSION = (0, 1, 2)
+VERSION = (0, 1, 3)
 __version__ = '.'.join(map(str, VERSION))
 
 _registry = {}

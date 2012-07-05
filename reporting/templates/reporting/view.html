@@ -53,6 +53,9 @@
 									<tr>
 										{% for head in report.get_headers %}
 											<th class="{{head.css_class}}">
+												<div class="sortoptions">
+													<a class="toggle {{head.css_class}}" href="{{head.url}}" title="{% trans "Toggle sorting" %}"></a>
+												</div>
 												<div class="text">
 													<a href="{{head.url}}">{{head.text}}</a>
 												</div>
