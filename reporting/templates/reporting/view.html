@@ -1,7 +1,7 @@
 {% extends "admin/base_site.html" %}
-{% load adminmedia admin_list i18n reporting_tags %}
+{% load static admin_list i18n reporting_tags %}
 
-{% block extrastyle %}<link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/changelists.css" />{% endblock %}
+{% block extrastyle %}<link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}"/>{% endblock %}
 
 {% block bodyclass %}change-list{% endblock %}
 
@@ -52,7 +52,11 @@
 								<thead>
 									<tr>
 										{% for head in report.get_headers %}
-											<th class="{{head.css_class}}"><a href="{{head.url}}">{{head.text}}</a></th>
+											<th class="{{head.css_class}}">
+												<div class="text">
+													<a href="{{head.url}}">{{head.text}}</a>
+												</div>
+											</th>
 										{% endfor %}
 									</tr>
 								</thead>
