@@ -56,7 +56,7 @@ class ReportView(ListView):
         self.report.page_num = context['page_obj'].number - 1
         self.report.show_all = self.report.can_show_all = False
         self.report.multi_page = self.report.paginator.count > self.paginate_by
-        self.report.result_count = self.report.root_query_set.count()
+        self.report.result_count = self.report.paginator.count
         self.report.opts = {"verbose_name": "row", "verbose_name_plural":
                             "rows"}
         data = {'report': self.report, 'title': self.report.verbose_name}
