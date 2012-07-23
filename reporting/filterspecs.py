@@ -1,17 +1,17 @@
-try:
-    from django.contrib.admin import SimpleListFilter
-except: # pre-1.3
-    from django.contrib.admin.filterspecs import FilterSpec as SimpleListFilter
+# -*- coding: utf-8 -*-
+
+from django.contrib.admin import SimpleListFilter
 from django.db.models.fields.related import RelatedField
 from django.template.defaultfilters import capfirst
 
 
 class LookupFilterSpec(SimpleListFilter):
     def __init__(self, f, request, params, model, model_admin):
-        FilterSpec.__init__(self, f, request, params, model, model_admin)
+        super(SimpleListFilter, self).__init__(request, params, model,
+                                               model_admin)
         self.model = model
         self.lookup_val = request.GET.get(f, None)
-    
+
     def title(self):
         return capfirst(' '.join([i for i in self.field.split('__')]))
 
@@ -25,7 +25,7 @@ class LookupFilterSpec(SimpleListFilter):
             yield {'selected': self.lookup_val == id,
                    'query_string': cl.get_query_string({self.field: id}),
                    'display': display}
-    
+
     def _values(self, model, lookup):
         parts = lookup.split('__')
         field = model._meta.get_field(parts[0])
@@ -35,11 +35,12 @@ class LookupFilterSpec(SimpleListFilter):
         if len(parts) == 2:
             field2 = rel_model._meta.get_field(parts[1])
             ids = [i[0] for i in field.get_choices(include_blank=False)]
-            values = set(rel_model.objects.filter(pk__in=ids).values_list(parts[1], flat=True))
+            values = set(rel_model.objects.filter(pk__in=ids)\
+                         .values_list(parts[1], flat=True))
             if field2.choices:
                 labels = dict(field2.choices)
                 return [(unicode(v), labels[v]) for v in values]
-            return [(v,v) for v in values]
+            return [(v, v) for v in values]
         next_lookup = '__'.join(parts[1:])
         return self._values(rel_model, next_lookup)
 
