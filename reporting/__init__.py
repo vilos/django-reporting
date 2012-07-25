@@ -1,10 +1,10 @@
 import imp
 import os
 if 'DJANGO_SETTINGS_MODULE' in os.environ:
-    from base import Report
+    from base import Report  # NOQA
 
 
-VERSION = (0, 1, 4)
+VERSION = (0, 2, 0)
 __version__ = '.'.join(map(str, VERSION))
 
 _registry = {}
@@ -31,7 +31,8 @@ def all_reports():
 
 def autodiscover():
     from django.conf import settings
-    REPORTING_SOURCE_FILE =  getattr(settings, 'REPORTING_SOURCE_FILE', 'reports')
+    REPORTING_SOURCE_FILE = getattr(settings, 'REPORTING_SOURCE_FILE',
+                                    'reports')
     for app in settings.INSTALLED_APPS:
         try:
             app_path = __import__(app, {}, {}, [app.split('.')[-1]]).__path__
