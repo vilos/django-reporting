@@ -13,116 +13,30 @@
 </div>
 {% endblock %}
 
+{% block coltype %}flex{% endblock %}
+
 {% block content %}
 <div id="content-main">
 	{% block object-tools %}{% endblock %}
 
+	{% block search %}{% search_form report %}{% endblock %}
 	{% block date_hierarchy %}{% date_hierarchy report %}{% endblock %}
-
-	<div class="module{% if cl.has_filters %} filtered{% endif %}" id="changelist">
-
+	<div class="module{% if report.has_filters %} filtered{% endif %}" id="changelist">
 	{% block filters %}
 		{% if report.has_filters %}
 			<div id="changelist-filter">
-				{% if report.detail_list_display %}
-					<h2>Details</h2>
-					<ul><li>{{report.details_switch|safe}}</li></ul>
+				{% if report.grouper.has_output %}
+					{% report_grouping report %}
 				{% endif %}
-				<h2>{% trans 'Group by' %}</h2>
-				<ul>
-					{% for url, name, selected in report.group_by_links %}
-						<li{% if selected %} class="selected"{% endif %}><a href="{{url}}">{{name}}</a></li>
-					{% endfor %}
-				</ul>
 				<h2>{% trans 'Filter' %}</h2>
-				{% for spec in report.filter_specs %}
-					{% admin_list_filter report spec %}
-				{% endfor %}
+				{% for spec in report.filter_specs %}{% admin_list_filter report spec %}{% endfor %}
 			</div>
 		{% endif %}
 	{% endblock %}
 
 	{% block result_list %}
-		{% with group_by_count=report.selected_group_by|length|slugify %}
-			{% with group_slice=":"|add:group_by_count data_slice=group_by_count|add:":" %}
-				<div id="changelist" class="filtered">
-					<div class="results">
-						<table id="result_list">
-							{% if not report.show_details %}
-								<thead>
-									<tr>
-										{% for head in report.get_headers %}
-											<th class="{{head.css_class}}">
-												<div class="sortoptions">
-													<a class="toggle {{head.css_class}}" href="{{head.url}}" title="{% trans "Toggle sorting" %}"></a>
-												</div>
-												<div class="text">
-													<a href="{{head.url}}">{{head.text}}</a>
-												</div>
-											</th>
-										{% endfor %}
-									</tr>
-								</thead>
-							{% endif %}
-							{% for row in object_list|annotate_details:report %}
-								{% if not report.show_details %}
-									<tr class="row{% if forloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
-										{% for item in row.items %}<td>{{item.1}}</td>{% endfor %}
-									</tr>
-								{% else %}
-									<tr class="row{% if forloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
-										<td colspan="{{report.fields.length}}" style="text-align: left;">
-											<strong>{{row.values|slice:group_slice|join:", "}} </strong>
-										</td>
-									</tr>
-								{% endif %}
-								{% if row.details %}
-									<thead>
-										<tr class="row{% if forloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
-											<td style="border-bottom: 0px;"></td>
-											{% for col in report.get_details_headers %}
-												<th>{{col}}</th>
-											{% endfor %}
-										</tr>
-									</thead>
-									{% for details_row in row.details %}
-										<tr class="row{% if forloop.parentloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
-											<td style="border-bottom: 0px;"></td>
-											{% for value in details_row %}
-												<td>{{value}}</td>
-											{% endfor %}
-										</tr>
-									{% endfor %}
-									{% if report.show_details %}
-										<tr class="row{% if forloop.counter0|divisibleby:"2" %}1{%else%}2{% endif %}">
-											<td> </td>
-											{% for value in row.values|slice:data_slice %}
-												<td><strong>{{value}}</strong></td>
-											{% endfor %}
-										</tr>
-									{% endif %}
-								{% endif %}
-							{% endfor %}
-							{% if report.aggregate %}
-								<tr>
-									{% if not report.show_details %}
-										{% for field in report.selected_group_by %}
-											<td> </td>
-										{% endfor %}
-									{% else %}
-											<td> </td>
-									{% endif %}
-									{% for title, value in report.get_aggregation %}
-										<td><strong>{{title}}: {{value}}</strong></td>
-									{% endfor %}
-								</tr>
-							{% endif %}
-						</table>
-					</div>
-					{% block pagination %}{% pagination report %}{% endblock %}
-				</div>
-			{% endwith %}
-		{% endwith %}
+		{% report_result_list report %}
+		{% block pagination %}{% pagination report %}{% endblock %}
 	{% endblock %}
 	</div>
 </div>

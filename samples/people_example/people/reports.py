@@ -17,7 +17,7 @@ class PersonReport(reporting.Report):
     )
     group_by = [                   # list of fields and lookups for group-by options
         ('department', ('department__title',)),
-        ('leader', ('department__leader',), 'Department leader'),
+        ('leader', ('department__leader__name',), 'Department leader'),
         ('occupation', ('occupation__title',)),
         ('dep_occup', ('department__title', 'occupation__title',), 'Department and occupation'),
     ]
@@ -25,14 +25,10 @@ class PersonReport(reporting.Report):
        'occupation',
        'country',
     ]
-
-    detail_list_display = [        # if detail_list_display is defined user will be able to see how rows was grouped
-        'name',
-        'salary',
-        'expenses',
-    ]
+    ordering = ('-id_count',)
 
     date_hierarchy = 'birth_date' # the same as django-admin
+    search_fields = ("department__title",)
 
 
 reporting.register('people', PersonReport) # Do not forget to 'register' your class in reports
