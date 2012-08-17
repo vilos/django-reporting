@@ -4,7 +4,7 @@ if 'DJANGO_SETTINGS_MODULE' in os.environ:
     from base import Report  # NOQA
 
 
-VERSION = (0, 2, 1)
+VERSION = (0, 2, 2)
 __version__ = '.'.join(map(str, VERSION))
 
 _registry = {}
