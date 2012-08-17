@@ -2,9 +2,12 @@
 
 import copy
 
+from django import forms
+from django.conf import settings
+from django.contrib.admin.options import IncorrectLookupParameters
+from django.contrib.admin.templatetags.admin_static import static
 from django.contrib.admin.util import get_fields_from_path
 from django.contrib.admin.views.main import ORDER_VAR, ChangeList
-from django.contrib.admin.options import IncorrectLookupParameters
 from django.core.paginator import Paginator, InvalidPage
 from django.db.models.fields import FieldDoesNotExist
 # we have to check EmptyQuerySet due to
@@ -112,6 +115,16 @@ class ReportAdmin(object):
     def lookup_allowed(self, lookup, value):
         return True
 
+    @property
+    def media(self):
+        extra = '' if settings.DEBUG else '.min'
+        js = [
+            'core.js',
+            'jquery%s.js' % extra,
+            'jquery.init.js'
+        ]
+        return forms.Media(js=[static('admin/js/%s' % url) for url in js])
+
 
 class Report(ChangeList):
     aggregate = ()
@@ -135,13 +148,13 @@ class Report(ChangeList):
         self.grouper = ReportGrouper(request, params, self)
         self.result_headers = self.get_result_headers()
         self.list_display = self.get_list_display()
-        report_admin = ReportAdmin(self)
+        self.admin = ReportAdmin(self)
 
         super(Report, self).__init__(request, self.model, self.list_display,
                 self.list_display_links, self.list_filter, self.date_hierarchy,
                 self.search_fields, self.list_select_related,
                 self.list_per_page, self.list_max_show_all, self.list_editable,
-                report_admin)
+                self.admin)
         self.opts = copy.copy(self.opts)
         self.opts.verbose_name = _("row")
         self.opts.verbose_name_plural = _("rows")

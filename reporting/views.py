@@ -1,4 +1,5 @@
 import reporting
+
 from django.contrib.auth.decorators import permission_required
 from django.http import Http404
 from django.utils.decorators import method_decorator
@@ -46,6 +47,7 @@ class ReportView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(ReportView, self).get_context_data(**kwargs)
-        data = {'report': self.report, 'title': self.report.verbose_name}
+        data = {'report': self.report, 'title': self.report.verbose_name,
+                'media': self.report.admin.media}
         context.update(data)
         return context
