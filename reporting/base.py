@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import copy
+
 from django.contrib.admin.util import get_fields_from_path
 from django.contrib.admin.views.main import ORDER_VAR, ChangeList
 from django.contrib.admin.options import IncorrectLookupParameters
@@ -140,6 +142,7 @@ class Report(ChangeList):
                 self.search_fields, self.list_select_related,
                 self.list_per_page, self.list_max_show_all, self.list_editable,
                 report_admin)
+        self.opts = copy.copy(self.opts)
         self.opts.verbose_name = _("row")
         self.opts.verbose_name_plural = _("rows")
         self.aggregate, self.aggregate_titles = self.split_annotate_titles(
