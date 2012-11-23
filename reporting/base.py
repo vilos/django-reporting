@@ -126,7 +126,24 @@ class ReportAdmin(object):
         return forms.Media(js=[static('admin/js/%s' % url) for url in js])
 
 
+class ReportMeta(type(ChangeList)):
+    def __new__(cls, name, bases, attrs):
+        new_cls = super(ReportMeta, cls).__new__(cls, name, bases, attrs)
+
+        new_cls.abstract = 'abstract' in attrs
+
+        if not new_cls.abstract:
+            if not 'permissions' in attrs:
+                # init default permissions
+                new_cls.permissions = (("can_view_%s" % name.lower(),
+                                       "Can view %s" % name),)
+        return new_cls
+
+
 class Report(ChangeList):
+    __metaclass__ = ReportMeta
+
+    abstract = True
     aggregate = ()
     annotate = ()
     detail_list_display = None
@@ -142,6 +159,7 @@ class Report(ChangeList):
     list_select_related = False
     list_per_page = 100
     search_fields = ()
+    permissions = ()
 
     def __init__(self, request):
         params = dict(request.GET.items())
@@ -160,6 +178,15 @@ class Report(ChangeList):
         self.opts.verbose_name_plural = _("rows")
         self.aggregate, self.aggregate_titles = self.split_annotate_titles(
             self.aggregate)
+
+    def annotate_queryset(self, request, queryset):
+        qs = queryset
+        if not isinstance(qs, EmptyQuerySet) and self.grouper.has_output():
+            values = self.grouper.group_value
+            qs = qs.values(*values)
+            qs = qs.annotate(**dict(self.annotate_fields))
+
+        return qs
 
     def get_aggregation(self):
         if self.aggregate is None:
@@ -292,15 +319,6 @@ class Report(ChangeList):
     def get_root_query_set(self, request):
         return self.model.objects.all()
 
-    def annotate_queryset(self, request, queryset):
-        qs = queryset
-        if not isinstance(qs, EmptyQuerySet) and self.grouper.has_output():
-            values = self.grouper.group_value
-            qs = qs.values(*values)
-            qs = qs.annotate(**dict(self.annotate_fields))
-
-        return qs
-
     def get_lookup_title(self, lookup):
         try:
             return capfirst(self.model._meta.get_field(lookup).verbose_name)
@@ -309,6 +327,11 @@ class Report(ChangeList):
                 raise
             parts = lookup.split('__')
             return ', '.join([capfirst(i.replace('_', ' ')) for i in parts])
+
+    @classmethod
+    def has_view_permission(cls, request):
+        return all([request.user.has_perm("auth.%s" % perm)
+                    for perm, name in cls.permissions])
 
     def split_annotate_titles(self, items):
         data, titles = [], []
