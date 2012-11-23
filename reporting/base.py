@@ -230,7 +230,7 @@ class Report(ChangeList):
         return super(Report, self).get_query_string(params, remove)
 
     def get_results(self, request):
-        query_set = self.get_annotated_queryset(request)
+        query_set = self.annotate_queryset(request, self.query_set)
         paginator = self.model_admin.get_paginator(request, query_set,
                                                    self.list_per_page)
         # Get the number of objects, with admin filters applied.
@@ -243,7 +243,8 @@ class Report(ChangeList):
         if not self.query_set.query.where:
             full_result_count = result_count
         else:
-            full_result_count = self.root_query_set.count()
+            full_result_count = self.annotate_queryset(
+                request, self.root_query_set).count()
 
         can_show_all = result_count <= self.list_max_show_all
         multi_page = result_count > self.list_per_page
@@ -291,8 +292,8 @@ class Report(ChangeList):
     def get_root_query_set(self, request):
         return self.model.objects.all()
 
-    def get_annotated_queryset(self, request):
-        qs = self.query_set
+    def annotate_queryset(self, request, queryset):
+        qs = queryset
         if not isinstance(qs, EmptyQuerySet) and self.grouper.has_output():
             values = self.grouper.group_value
             qs = qs.values(*values)
