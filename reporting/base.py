@@ -12,6 +12,7 @@ from django.core.paginator import Paginator, InvalidPage
 from django.db.models.fields import FieldDoesNotExist
 # we have to check EmptyQuerySet due to
 # https://code.djangoproject.com/ticket/17681
+from django.contrib.auth.models import Permission
 from django.db.models.query import EmptyQuerySet
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
@@ -332,6 +333,22 @@ class Report(ChangeList):
     def has_view_permission(cls, request):
         return all([request.user.has_perm("auth.%s" % perm)
                     for perm, name in cls.permissions])
+
+    @classmethod
+    def grant_to(cls, user):
+        perm_codes = [perm[0] for perm in cls.permissions]
+        for perm_code in perm_codes:
+            if not user.has_perm("auth.%s" % perm_code):
+                perm = Permission.objects.get(codename=perm_code)
+                user.user_permissions.add(perm)
+        user.is_staff = True
+        user.save()
+
+    @classmethod
+    def revoke_from(cls, user):
+        perm_codes = [perm[0] for perm in cls.permissions]
+        perms = Permission.objects.filter(codename__in=perm_codes)
+        user.user_permissions.remove(*perms)
 
     def split_annotate_titles(self, items):
         data, titles = [], []
