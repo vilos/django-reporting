@@ -1,0 +1,12 @@
+{% load i18n reporting_tags %}
+
+<div class="grp-module">
+    <div class="grp-row">
+        <label>{% trans 'Group by' %}</label>
+        <select class="grp-filter-choice">
+            {% for selected, query_string, display in grouping_choices %}
+                <option value="{{ query_string }}" {% if selected %} selected="selected"{% endif %}>{{ display }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>

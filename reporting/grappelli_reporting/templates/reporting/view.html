@@ -1,0 +1,64 @@
+{% extends "admin/change_list.html" %}
+{% load static admin_list i18n reporting_tags %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}"/>
+{{ media.css }}
+{% endblock %}
+
+{% block extrahead %}{{ block.super }}
+	<script type="text/javascript" src="{{ jsi18nurl|default:'../../jsi18n/' }}"></script>
+	{{ media.js }}
+{% endblock %}
+
+{% block bodyclass %}grp-change-list{% endblock %}
+{% block content-class %}{% endblock %}
+
+{% block breadcrumbs %}
+    {% if not is_popup %}
+        <ul class="grp-horizontal-list">
+            <li><a href="/admin/">{% trans "Home" %}</a></li>
+            <li><a href="{% url reporting-list %}">Reports</a></li>
+            <li>{{ report.verbose_name }}</li>
+        </ul>
+    {% endif %}
+{% endblock %}
+
+{% block content_title %}
+    <h1>{{ report.verbose_name }}</h1>
+{% endblock %}
+
+{% block result_list %}
+    {% report_result_list report %}
+    {% block pagination %}{% pagination report %}{% endblock %}
+{% endblock %}
+
+{% block filtersOOOOOOOOOOOOOOOO %}
+    {% if report.has_filters %}
+        <div id="changelist-filter">
+            <h2>{% trans 'Filter' %}</h2>
+            {% if report.grouper.has_output %}
+                {% report_grouping report %}
+            {% endif %}
+            {% for spec in report.filter_specs %}{% admin_list_filter report spec %}{% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block filters %}
+    <div id="grp-filters" class="g-d-6 g-d-l">
+        <div class="grp-filter">
+            <div class="grp-pulldown-container">
+                <a href="javascript://" class="grp-button grp-pulldown-handler">{% trans 'Filter' %}</a>
+                <div class="grp-pulldown-content" style="display: none;">
+                    {% if report.grouper.has_output %}
+                        {% report_grouping report %}
+                    {% endif %}
+                    {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block date_hierarchy %}{% date_hierarchy report %}{% endblock %}
