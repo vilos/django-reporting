@@ -33,18 +33,6 @@
     {% block pagination %}{% pagination report %}{% endblock %}
 {% endblock %}
 
-{% block filtersOOOOOOOOOOOOOOOO %}
-    {% if report.has_filters %}
-        <div id="changelist-filter">
-            <h2>{% trans 'Filter' %}</h2>
-            {% if report.grouper.has_output %}
-                {% report_grouping report %}
-            {% endif %}
-            {% for spec in report.filter_specs %}{% admin_list_filter report spec %}{% endfor %}
-        </div>
-    {% endif %}
-{% endblock %}
-
 {% block filters %}
     <div id="grp-filters" class="g-d-6 g-d-l">
         <div class="grp-filter">
