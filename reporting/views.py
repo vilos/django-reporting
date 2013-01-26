@@ -4,6 +4,7 @@ from reporting.datasets import FORMATS
 
 from django.http import Http404, HttpResponseForbidden, HttpResponse
 from django.views.generic import TemplateView
+from django.utils.translation import ugettext_lazy as _
 
 
 MIMETYPES = {
@@ -32,7 +33,7 @@ class ReportListView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(ReportListView, self).get_context_data(**kwargs)
-        data = {'reports': self.reports}
+        data = {'reports': self.reports, 'title': _('Reports')}
         context.update(data)
         return context
 
