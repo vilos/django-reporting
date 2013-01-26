@@ -64,6 +64,9 @@ def admin_urls(admin_site=None):
             name='reporting-list'),
         url('^(?P<slug>[\w-]+)/$', admin_site.admin_view(ReportView.as_view()),
             name='reporting-view'),
+        url('^(?P<slug>[\w-]+)/export/(?P<format>[\w-]+)/$',
+            admin_site.admin_view(ReportExportView.as_view()),
+            name='reporting-export'),
     )
 
     return urlpatterns

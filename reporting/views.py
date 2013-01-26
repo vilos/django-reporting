@@ -1,8 +1,18 @@
+import tablib
 import reporting
+from reporting.datasets import FORMATS
 
-from django.http import Http404, HttpResponseForbidden
+from django.http import Http404, HttpResponseForbidden, HttpResponse
 from django.views.generic import TemplateView
 
+
+MIMETYPES = {
+    'xls': 'application/vnd.ms-excel',
+    'csv': 'text/csv',
+    'html': 'text/html',
+    'yaml': 'text/yaml',
+    'json': 'application/json',
+}
 
 class ReportListView(TemplateView):
     template_name = 'reporting/list.html'
@@ -49,3 +59,30 @@ class ReportView(TemplateView):
                 'cl': self.report, 'media': self.report.admin.media}
         context.update(data)
         return context
+
+
+class ReportExportView(ReportView):
+
+    def get_dataset(self, report):
+        return reporting.datasets.ReportDataset(report)
+
+    def get(self, request, slug, format, **kwargs):
+        if format not in FORMATS:
+            raise Http404('Format "%s" not available.' % format)
+
+        self.slug = slug
+        self.report = self.get_report(self.slug)
+
+        if not self.report.has_view_permission(request):
+            return HttpResponseForbidden()
+
+        dataset = self.get_dataset(self.report)
+
+        response = HttpResponse(
+            getattr(dataset, format),
+            mimetype=MIMETYPES.get(format, 'application/octet-stream'))
+
+        filename = '%s.%s' % (slug, format)
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
+        return response
