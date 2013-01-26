@@ -56,7 +56,8 @@ class ReportView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ReportView, self).get_context_data(**kwargs)
         data = {'report': self.report, 'title': self.report.verbose_name,
-                'cl': self.report, 'media': self.report.admin.media}
+                'cl': self.report, 'media': self.report.admin.media,
+                'slug': self.slug}
         context.update(data)
         return context
 

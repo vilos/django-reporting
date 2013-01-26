@@ -17,7 +17,7 @@ from django.db.models.query import EmptyQuerySet
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy as _
-
+from reporting.datasets import FORMATS
 
 GROUP_BY_VAR = 'group_by'
 
@@ -161,6 +161,7 @@ class Report(ChangeList):
     list_per_page = 100
     search_fields = ()
     permissions = ()
+    export_formats = tuple(FORMATS)
 
     def __init__(self, request):
         params = dict(request.GET.items())

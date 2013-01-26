@@ -1,5 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load static admin_list i18n reporting_tags %}
+{% load url from future %}
 
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}"/>
@@ -16,7 +17,7 @@
 {% block breadcrumbs %}
 <div class="breadcrumbs">
 	<a href="/admin/">{% trans "Home" %}</a> &rsaquo;
-	<a href="{% url reporting-list %}">Reports</a> &rsaquo;
+	<a href="{% url 'reporting-list' %}">Reports</a> &rsaquo;
 	{{report.verbose_name}}
 </div>
 {% endblock %}
@@ -25,7 +26,21 @@
 
 {% block content %}
 <div id="content-main">
-	{% block object-tools %}{% endblock %}
+    {% block object-tools %}
+        {% if report.export_formats %}
+            <ul class="object-tools">
+                {% block object-tools-items %}
+                    {% for format in report.export_formats %}
+                        <li>
+                            <a href="{% url 'reporting-export' slug format %}">
+                                {{ format }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                {% endblock %}
+            </ul>
+        {% endif %}
+    {% endblock %}
 
 	{% block search %}{% search_form report %}{% endblock %}
 	{% block date_hierarchy %}{% date_hierarchy report %}{% endblock %}
