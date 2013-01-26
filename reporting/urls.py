@@ -1,7 +1,6 @@
-from django.conf.urls import patterns, url
-from .views import ReportListView, ReportView
+from django.conf.urls import patterns, url, include
+from reporting import admin_urls
 
 urlpatterns = patterns('',
-    url('^$', ReportListView.as_view(), name='reporting-list'),
-    url('^(?P<slug>.*)/$', ReportView.as_view(), name='reporting-view'),
+    url('', include(admin_urls())),
 )

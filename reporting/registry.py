@@ -47,3 +47,23 @@ def autodiscover():
         else:
             modules.append(module)
     return modules
+
+def admin_urls(admin_site=None):
+    """
+    URLs for views with the `admin_view` decorator of a custom or the
+    default admin-site.
+    """
+    from django.conf.urls import patterns, url
+    from reporting.views import ReportListView, ReportView, ReportExportView
+
+    if not admin_site:
+        from django.contrib.admin import site as admin_site
+
+    urlpatterns = patterns('',
+        url('^$', admin_site.admin_view(ReportListView.as_view()),
+            name='reporting-list'),
+        url('^(?P<slug>[\w-]+)/$', admin_site.admin_view(ReportView.as_view()),
+            name='reporting-view'),
+    )
+
+    return urlpatterns
