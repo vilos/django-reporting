@@ -25,7 +25,7 @@
             {% block object-tools-items %}
                 {% for format in report.export_formats %}
                     <li>
-                        <a href="{% url 'reporting-export' slug format %}" class="grp-state-focus">
+                        <a href="{% url 'reporting-export' slug format %}?{{ request.META.QUERY_STRING }}" class="grp-state-focus">
                             {{ format }}
                         </a>
                     </li>

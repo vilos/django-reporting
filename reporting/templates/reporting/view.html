@@ -15,7 +15,7 @@
         <ul class="object-tools">
             {% block object-tools-items %}
                 {% for format in report.export_formats %}
-                    <li><a href="{% url 'reporting-export' slug format %}">{{ format }}</a></li>
+                    <li><a href="{% url 'reporting-export' slug format %}?{{ request.META.QUERY_STRING }}">{{ format }}</a></li>
                 {% endfor %}
             {% endblock %}
         </ul>
