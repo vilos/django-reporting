@@ -25,10 +25,13 @@ def results(report):
         aggregation_row = []
         for field in report.grouper.group_value:
             aggregation_row.append(mark_safe(u'<td>%s</td>' % "&nbsp"))
+
+        aggregate_titles = [mark_safe('<th>%s</th>' % t) for t in report.aggregate_titles]
+        yield ResultList(None, aggregation_row + aggregate_titles)
+
         for title, value in report.get_aggregation():
-            result_repr = "%s: %s" % (title, value)
             aggregation_row.append(
-                mark_safe(u'<td><strong>%s</strong></td>' % result_repr))
+                mark_safe(u'<td><strong>%s</strong></td>' % value))
         yield ResultList(None, aggregation_row)
 
 
