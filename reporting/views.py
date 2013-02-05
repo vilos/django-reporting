@@ -39,7 +39,6 @@ class ReportListView(TemplateView):
 
 
 class ReportView(TemplateView):
-    template_name = 'reporting/view.html'
 
     def get(self, request, slug, **kwargs):
         self.slug = slug
@@ -53,6 +52,9 @@ class ReportView(TemplateView):
             return reporting.get_report(slug)(self.request)
         except reporting.ReportNotFound:
             raise Http404
+
+    def get_template_names(self):
+        return self.report.get_template_names()
 
     def get_context_data(self, **kwargs):
         context = super(ReportView, self).get_context_data(**kwargs)

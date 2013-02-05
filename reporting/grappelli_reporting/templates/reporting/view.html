@@ -1,39 +1,6 @@
-{% extends "admin/change_list.html" %}
+{% extends "reporting/simple.html" %}
 {% load static admin_list i18n reporting_tags %}
 {% load url from future %}
-
-{% block bodyclass %}grp-change-list{% endblock %}
-{% block content-class %}{% endblock %}
-
-{% block breadcrumbs %}
-    {% if not is_popup %}
-        <ul class="grp-horizontal-list">
-            <li><a href="/admin/">{% trans "Home" %}</a></li>
-            <li><a href="{% url 'reporting-list' %}">Reports</a></li>
-            <li>{{ report.verbose_name }}</li>
-        </ul>
-    {% endif %}
-{% endblock %}
-
-{% block content_title %}
-    <h1>{{ report.verbose_name }}</h1>
-{% endblock %}
-
-{% block object-tools %}
-    {% if report.export_formats %}
-        <ul class="grp-object-tools">
-            {% block object-tools-items %}
-                {% for format in report.export_formats %}
-                    <li>
-                        <a href="{% url 'reporting-export' slug format %}?{{ request.META.QUERY_STRING }}" class="grp-state-focus">
-                            {{ format }}
-                        </a>
-                    </li>
-                {% endfor %}
-            {% endblock %}
-        </ul>
-    {% endif %}
-{% endblock %}
 
 {% block result_list %}
     {% report_result_list report %}
@@ -56,4 +23,5 @@
     </div>
 {% endblock %}
 
+{# TODO: remove this in favor of the default block #}
 {% block date_hierarchy %}{% date_hierarchy report %}{% endblock %}
