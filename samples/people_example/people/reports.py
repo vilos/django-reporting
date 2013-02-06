@@ -1,34 +1,48 @@
 import reporting
-from django.db.models import Sum, Avg, Count
+from django.db.models import Sum, Count
 from models import Person
+
 
 class PersonReport(reporting.Report):
     model = Person
     verbose_name = 'Person Report'
-    annotate = (                    # Annotation fields (tupples of field, func, title)
-        ('id', Count, 'Total'),     # example of custom title for column
-        ('salary', Sum),            # no title - column will be "Salary Sum"
+
+    # Annotation fields (tupples of field, func, title)
+    # example of custom title for column
+    # no title - column will be "Salary Sum"
+    annotate = (
+        ('id', Count, 'Total'),
+        ('salary', Sum),
         ('expenses', Sum),
     )
-    aggregate = (                   # columns that will be aggregated (syntax the same as for annotate)
+
+    # columns that will be aggregated (syntax the same as for annotate)
+    aggregate = (
         ('id', Count, 'Total'),
         ('salary', Sum, 'Salary'),
         ('expenses', Sum, 'Expenses'),
     )
-    group_by = [                   # list of fields and lookups for group-by options
+
+    # list of fields and lookups for group-by options
+    group_by = [
         ('department', ('department__title',)),
         ('leader', ('department__leader__name',), 'Department leader'),
         ('occupation', ('occupation__title',)),
-        ('dep_occup', ('department__title', 'occupation__title',), 'Department and occupation'),
+        ('dep_occup', ('department__title', 'occupation__title',),
+         'Department and occupation'),
     ]
-    list_filter = [                # This are report filter options (similar to django-admin)
+
+    # This are report filter options (similar to django-admin)
+    list_filter = [
        'occupation',
        'country',
     ]
     ordering = ('-id_count',)
 
-    date_hierarchy = 'birth_date' # the same as django-admin
+    # the same as django-admin
+    date_hierarchy = 'birth_date'
     search_fields = ("department__title",)
 
 
-reporting.register('people', PersonReport) # Do not forget to 'register' your class in reports
+# Do not forget to 'register' your class in reports
+reporting.register('people', PersonReport)
