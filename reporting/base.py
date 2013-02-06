@@ -165,11 +165,11 @@ class SimpleReport(ChangeList):
         # Workaround for get_ordering
         self.fields = self.list_display
 
-        super(SimpleReport, self).__init__(request, self.model, self.list_display,
-                self.list_display_links, self.list_filter, self.date_hierarchy,
-                self.search_fields, self.list_select_related,
-                self.list_per_page, self.list_max_show_all, self.list_editable,
-                self.admin)
+        super(SimpleReport, self).__init__(
+            request, self.model, self.list_display, self.list_display_links,
+            self.list_filter, self.date_hierarchy, self.search_fields,
+            self.list_select_related, self.list_per_page,
+            self.list_max_show_all, self.list_editable, self.admin)
 
         self.opts = copy.copy(self.opts)
         self.opts.verbose_name = _("row")
