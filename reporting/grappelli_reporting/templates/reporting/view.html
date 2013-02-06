@@ -1,0 +1,27 @@
+{% extends "reporting/simple.html" %}
+{% load static admin_list i18n reporting_tags %}
+{% load url from future %}
+
+{% block result_list %}
+    {% report_result_list report %}
+    {% block pagination %}{% pagination report %}{% endblock %}
+{% endblock %}
+
+{% block filters %}
+    <div id="grp-filters" class="g-d-6 g-d-l">
+        <div class="grp-filter">
+            <div class="grp-pulldown-container">
+                <a href="javascript://" class="grp-button grp-pulldown-handler">{% trans 'Filter' %}</a>
+                <div class="grp-pulldown-content" style="display: none;">
+                    {% if report.grouper.has_output %}
+                        {% report_grouping report %}
+                    {% endif %}
+                    {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{# TODO: remove this in favor of the default block #}
+{% block date_hierarchy %}{% date_hierarchy report %}{% endblock %}

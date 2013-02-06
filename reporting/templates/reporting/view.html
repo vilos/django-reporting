@@ -1,51 +1,19 @@
-{% extends "admin/base_site.html" %}
-{% load static admin_list i18n reporting_tags %}
+{% extends "reporting/simple.html" %}
+{% load admin_list i18n reporting_tags %}
+{% load url from future %}
 
-{% block extrastyle %}{{ block.super }}
-<link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}"/>
-{{ media.css }}
+{% block filters %}
+	{% if report.has_filters %}
+		<div id="changelist-filter">
+			{% if report.grouper.has_output %}
+				{% report_grouping report %}
+			{% endif %}
+			<h2>{% trans 'Filter' %}</h2>
+			{% for spec in report.filter_specs %}{% admin_list_filter report spec %}{% endfor %}
+		</div>
+	{% endif %}
 {% endblock %}
 
-{% block extrahead %}{{ block.super }}
-	<script type="text/javascript" src="{{ jsi18nurl|default:'../../jsi18n/' }}"></script>
-	{{ media.js }}
-{% endblock %}
-
-{% block bodyclass %}change-list{% endblock %}
-
-{% block breadcrumbs %}
-<div class="breadcrumbs">
-	<a href="/admin/">{% trans "Home" %}</a> &rsaquo;
-	<a href="{% url reporting-list %}">Reports</a> &rsaquo;
-	{{report.verbose_name}}
-</div>
-{% endblock %}
-
-{% block coltype %}flex{% endblock %}
-
-{% block content %}
-<div id="content-main">
-	{% block object-tools %}{% endblock %}
-
-	{% block search %}{% search_form report %}{% endblock %}
-	{% block date_hierarchy %}{% date_hierarchy report %}{% endblock %}
-	<div class="module{% if report.has_filters %} filtered{% endif %}" id="changelist">
-	{% block filters %}
-		{% if report.has_filters %}
-			<div id="changelist-filter">
-				{% if report.grouper.has_output %}
-					{% report_grouping report %}
-				{% endif %}
-				<h2>{% trans 'Filter' %}</h2>
-				{% for spec in report.filter_specs %}{% admin_list_filter report spec %}{% endfor %}
-			</div>
-		{% endif %}
-	{% endblock %}
-
-	{% block result_list %}
-		{% report_result_list report %}
-		{% block pagination %}{% pagination report %}{% endblock %}
-	{% endblock %}
-	</div>
-</div>
+{% block result_list %}
+	{% report_result_list report %}
 {% endblock %}

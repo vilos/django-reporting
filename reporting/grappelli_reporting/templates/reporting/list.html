@@ -1,0 +1,26 @@
+{% extends "admin/index.html" %}
+{% load i18n static %}
+
+{% if not is_popup %}
+    {% block breadcrumbs %}
+        <ul class="grp-horizontal-list">
+            <li><a href="../">{% trans "Home" %}</a></li>
+            <li>{% trans "Reports" %}</li>
+        </ul>
+    {% endblock %}
+{% endif %}
+
+{% block content %}
+<div class="g-d-c">
+    <div class="g-d-12" id="apps_init">
+        <div class="grp-module">
+            <h2>{% trans 'Reports' %}</h2>
+            {% for slug, report in reports %}
+                <div class="grp-row">
+                    <a href="{% url reporting-view slug %}"><strong>{{ report.verbose_name }}</strong></a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

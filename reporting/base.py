@@ -17,7 +17,7 @@ from django.db.models.query import EmptyQuerySet
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy as _
-
+from reporting.datasets import FORMATS
 
 GROUP_BY_VAR = 'group_by'
 
@@ -141,16 +141,13 @@ class ReportMeta(type(ChangeList)):
         return new_cls
 
 
-class Report(ChangeList):
+class SimpleReport(ChangeList):
     __metaclass__ = ReportMeta
 
     abstract = True
-    aggregate = ()
-    annotate = ()
-    detail_list_display = None
+    permissions = ()
     date_hierarchy = None
     formset = None
-    group_by = ()
     ordering = ()
     list_display = ()
     list_display_links = (None,)
@@ -160,23 +157,66 @@ class Report(ChangeList):
     list_select_related = False
     list_per_page = 100
     search_fields = ()
-    permissions = ()
+    export_formats = tuple(FORMATS)
+    template_name = 'reporting/simple.html'
+
+    def __init__(self, request):
+        self.admin = ReportAdmin(self)
+        # Workaround for get_ordering
+        self.fields = self.list_display
+
+        super(SimpleReport, self).__init__(request, self.model, self.list_display,
+                self.list_display_links, self.list_filter, self.date_hierarchy,
+                self.search_fields, self.list_select_related,
+                self.list_per_page, self.list_max_show_all, self.list_editable,
+                self.admin)
+
+        self.opts = copy.copy(self.opts)
+        self.opts.verbose_name = _("row")
+        self.opts.verbose_name_plural = _("rows")
+
+    def get_root_query_set(self, request):
+        return self.model.objects.all()
+
+    def get_template_names(self):
+        return self.template_name
+
+    @classmethod
+    def has_view_permission(cls, request):
+        return all([request.user.has_perm("auth.%s" % perm)
+                    for perm, name in cls.permissions])
+
+    @classmethod
+    def grant_to(cls, user):
+        perm_codes = [perm[0] for perm in cls.permissions]
+        for perm_code in perm_codes:
+            if not user.has_perm("auth.%s" % perm_code):
+                perm = Permission.objects.get(codename=perm_code)
+                user.user_permissions.add(perm)
+        user.is_staff = True
+        user.save()
+
+    @classmethod
+    def revoke_from(cls, user):
+        perm_codes = [perm[0] for perm in cls.permissions]
+        perms = Permission.objects.filter(codename__in=perm_codes)
+        user.user_permissions.remove(*perms)
+
+
+class Report(SimpleReport):
+    aggregate = ()
+    annotate = ()
+    group_by = ()
+    template_name = 'reporting/view.html'
 
     def __init__(self, request):
         params = dict(request.GET.items())
         self.grouper = ReportGrouper(request, params, self)
         self.result_headers = self.get_result_headers()
         self.list_display = self.get_list_display()
-        self.admin = ReportAdmin(self)
 
-        super(Report, self).__init__(request, self.model, self.list_display,
-                self.list_display_links, self.list_filter, self.date_hierarchy,
-                self.search_fields, self.list_select_related,
-                self.list_per_page, self.list_max_show_all, self.list_editable,
-                self.admin)
-        self.opts = copy.copy(self.opts)
-        self.opts.verbose_name = _("row")
-        self.opts.verbose_name_plural = _("rows")
+        super(Report, self).__init__(request)
+
         self.aggregate, self.aggregate_titles = self.split_annotate_titles(
             self.aggregate)
 
@@ -317,9 +357,6 @@ class Report(ChangeList):
 
         return annotate_fields
 
-    def get_root_query_set(self, request):
-        return self.model.objects.all()
-
     def get_lookup_title(self, lookup):
         try:
             return capfirst(self.model._meta.get_field(lookup).verbose_name)
@@ -328,27 +365,6 @@ class Report(ChangeList):
                 raise
             parts = lookup.split('__')
             return ', '.join([capfirst(i.replace('_', ' ')) for i in parts])
-
-    @classmethod
-    def has_view_permission(cls, request):
-        return all([request.user.has_perm("auth.%s" % perm)
-                    for perm, name in cls.permissions])
-
-    @classmethod
-    def grant_to(cls, user):
-        perm_codes = [perm[0] for perm in cls.permissions]
-        for perm_code in perm_codes:
-            if not user.has_perm("auth.%s" % perm_code):
-                perm = Permission.objects.get(codename=perm_code)
-                user.user_permissions.add(perm)
-        user.is_staff = True
-        user.save()
-
-    @classmethod
-    def revoke_from(cls, user):
-        perm_codes = [perm[0] for perm in cls.permissions]
-        perms = Permission.objects.filter(codename__in=perm_codes)
-        user.user_permissions.remove(*perms)
 
     def split_annotate_titles(self, items):
         data, titles = [], []

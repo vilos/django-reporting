@@ -1,2 +1,3 @@
 include README.*
 recursive-include reporting/templates *
+recursive-include reporting/grappelli_reporting/templates *
