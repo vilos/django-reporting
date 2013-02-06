@@ -10,7 +10,7 @@ class ReportDataset(tablib.Dataset):
 
     def __init__(self, report):
         self.report = report
-        
+
         headers = self._get_headers()
         super(ReportDataset, self).__init__(headers=headers)
 
@@ -22,7 +22,7 @@ class ReportDataset(tablib.Dataset):
 
     def _append_data(self):
         for result in self.report.result_list:
-            self.append([result[f] for f in self.report.list_display])
+            self.append([unicode(result[f]) for f in self.report.list_display])
 
     def _append_aggregates(self):
         if not self.report.aggregate:
@@ -33,5 +33,6 @@ class ReportDataset(tablib.Dataset):
         # Append a row of headers
         self.append(groupers + self.report.aggregate_titles)
         # Append aggregation values
-        values = [value for title, value in self.report.get_aggregation()]
+        values = [unicode(value) for title, value in
+                  self.report.get_aggregation()]
         self.append(groupers + values)
