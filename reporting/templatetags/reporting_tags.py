@@ -19,7 +19,7 @@ def items_for_result(report, result):
 
 
 def results(report):
-    for res in report.formatted_result_list:
+    for res in report.format_result_list(report.result_list):
         yield ResultList(None, items_for_result(report, res))
 
     if report.aggregate:

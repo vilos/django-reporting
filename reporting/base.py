@@ -222,9 +222,8 @@ class Report(SimpleReport):
         self.aggregate, self.aggregate_titles = self.split_annotate_titles(
             self.aggregate)
 
-    @property
-    def formatted_result_list(self):
-        for result in self.result_list:
+    def format_result_list(self, result_list):
+        for result in result_list:
             r = {}
             for key in self.list_display:
                 k, attr, value = lookup_key(key, result, self)
@@ -344,6 +343,7 @@ class Report(SimpleReport):
         self.result_count = result_count
         self.full_result_count = full_result_count
         self.result_list = result_list
+        self.full_result_list = query_set
         self.can_show_all = can_show_all
         self.multi_page = multi_page
         self.paginator = paginator
