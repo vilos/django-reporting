@@ -17,7 +17,8 @@ from django.db.models.query import EmptyQuerySet
 from django.utils.datastructures import SortedDict
 from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy as _
-from reporting.datasets import FORMATS
+from .datasets import FORMATS
+from .helpers import lookup_key
 
 GROUP_BY_VAR = 'group_by'
 
@@ -221,6 +222,15 @@ class Report(SimpleReport):
         self.aggregate, self.aggregate_titles = self.split_annotate_titles(
             self.aggregate)
 
+    @property
+    def formatted_result_list(self):
+        for result in self.result_list:
+            r = {}
+            for key in self.list_display:
+                k, attr, value = lookup_key(key, result, self)
+                r[key] = value
+            yield r
+
     def annotate_queryset(self, request, queryset):
         qs = queryset
         if not isinstance(qs, EmptyQuerySet) and self.grouper.has_output():
@@ -233,20 +243,24 @@ class Report(SimpleReport):
     def get_aggregation(self):
         if self.aggregate is None:
             return None
-        aggregate_args = {}
+
+        aggregations = []
         for field, func in self.aggregate:
-            aggregate_args[field] = func(field)
+            key = field + "_" + func.__name__.lower()
+            aggregations.append((key, func(field)))
 
         if not isinstance(self.query_set, EmptyQuerySet):
-            data = self.query_set.aggregate(**aggregate_args)
+            data = self.query_set.aggregate(**dict(aggregations))
         else:
             data = {}
 
         result = []
         ind = 0
-        for field, func in self.aggregate:
+        for key, v in aggregations:
+            data.setdefault(key, 0)
             title = self.aggregate_titles[ind]
-            result.append((title, data.get(field, 0)))
+            k, attr, value = lookup_key(key, data, self)
+            result.append((title, value))
             ind += 1
         return result
 
@@ -337,9 +351,9 @@ class Report(SimpleReport):
     def get_result_headers(self):
         output = {}
         if self.grouper.has_output():
-            for field in self.grouper.group_value:
-                output[field] = capfirst(get_fields_from_path(
-                    self.model, field)[-1].verbose_name)
+            for field_name in self.grouper.group_value:
+                output[field_name] = capfirst(get_fields_from_path(
+                    self.model, field_name)[-1].verbose_name)
 
         annotate, self.annotate_titles = self.split_annotate_titles(
             self.annotate)

@@ -18,10 +18,11 @@ class ReportDataset(tablib.Dataset):
         self._append_aggregates()
 
     def _get_headers(self):
-        return [self.report.result_headers[f] for f in self.report.list_display]
+        return [self.report.result_headers[f] for f in
+                self.report.list_display]
 
     def _append_data(self):
-        for result in self.report.result_list:
+        for result in self.report.formatted_result_list:
             self.append([unicode(result[f]) for f in self.report.list_display])
 
     def _append_aggregates(self):

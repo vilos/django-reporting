@@ -41,7 +41,13 @@ class PersonReport(reporting.Report):
 
     # the same as django-admin
     date_hierarchy = 'birth_date'
-    search_fields = ("department__title",)
+    search_fields = ('department__title',)
+
+    def salary_sum(self, dct):
+        return unicode(dct['salary_sum']) + ' $'
+
+    def expenses_sum(self, dct):
+        return unicode(dct['expenses_sum']) + ' $'
 
 
 # Do not forget to 'register' your class in reports

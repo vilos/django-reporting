@@ -13,12 +13,13 @@ def items_for_result(report, result):
     row_class = ''
 
     for field_name in report.list_display:
-        result_repr = conditional_escape(result[field_name])
+        value = result[field_name]
+        result_repr = conditional_escape(value)
         yield mark_safe(u'<td%s>%s</td>' % (row_class, result_repr))
 
 
 def results(report):
-    for res in report.result_list:
+    for res in report.formatted_result_list:
         yield ResultList(None, items_for_result(report, res))
 
     if report.aggregate:
@@ -26,7 +27,8 @@ def results(report):
         for field in report.grouper.group_value:
             aggregation_row.append(mark_safe(u'<td>%s</td>' % "&nbsp"))
 
-        aggregate_titles = [mark_safe('<th>%s</th>' % t) for t in report.aggregate_titles]
+        aggregate_titles = [mark_safe('<th>%s</th>' % t) for t in
+                            report.aggregate_titles]
         yield ResultList(None, aggregation_row + aggregate_titles)
 
         for title, value in report.get_aggregation():
