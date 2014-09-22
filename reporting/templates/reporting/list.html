@@ -16,7 +16,7 @@
     <caption>{% trans 'Reports' %}</caption>
     {% for slug, report in reports %}
         <tr>
-            <th scope="row"><a href="{% url reporting-view slug %}">{{ report.verbose_name }}</a></th>
+            <th scope="row"><a href="{% url 'reporting-view' slug %}">{{ report.verbose_name }}</a></th>
         	<td>&nbsp;</td>
         </tr>
     {% endfor %}

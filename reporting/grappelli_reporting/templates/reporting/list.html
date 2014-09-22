@@ -17,7 +17,7 @@
             <h2>{% trans 'Reports' %}</h2>
             {% for slug, report in reports %}
                 <div class="grp-row">
-                    <a href="{% url reporting-view slug %}"><strong>{{ report.verbose_name }}</strong></a>
+                    <a href="{% url 'reporting-view' slug %}"><strong>{{ report.verbose_name }}</strong></a>
                 </div>
             {% endfor %}
         </div>
