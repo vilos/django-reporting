@@ -9,6 +9,7 @@ from django.contrib.admin.templatetags.admin_static import static
 from django.contrib.admin.util import get_fields_from_path
 from django.contrib.admin.views.main import ORDER_VAR, ChangeList
 from django.core.paginator import Paginator, InvalidPage
+from django.db.models.expressions import ExpressionNode
 from django.db.models.fields import FieldDoesNotExist
 # we have to check EmptyQuerySet due to
 # https://code.djangoproject.com/ticket/17681
@@ -351,9 +352,11 @@ class Report(SimpleReport):
     def get_result_headers(self):
         output = {}
         if self.grouper.has_output():
-            for field_name in self.grouper.group_value:
-                output[field_name] = capfirst(get_fields_from_path(
-                    self.model, field_name)[-1].verbose_name)
+            for i,field_name in enumerate(self.grouper.group_value):
+                try:
+                    output[field_name] = self.list_headers[i]
+                except IndexError:
+                    output[field_name] = capfirst(get_fields_from_path(self.model, field_name)[-1].verbose_name)
 
         annotate, self.annotate_titles = self.split_annotate_titles(
             self.annotate)
